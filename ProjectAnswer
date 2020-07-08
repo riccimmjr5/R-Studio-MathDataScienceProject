@@ -1,0 +1,86 @@
+# Project SOlution
+# Mathematics for Data Science and AI using R
+#
+library (tidyverse)
+library (rgl)
+
+# 1. Open Longley Dataset
+longley <- read.csv('c:/users/riccim/documents/longley.csv', header=T, stringsAsFactors = F)
+
+#2. Plot all Variables compared to Employed
+plot(x=longley$Employed, y=longley$GNP.deflator, col = 'red')
+plot(x=longley$Employed, y=longley$GNP, col = 'blue')
+plot(x=longley$Employed, y=longley$Unemployed)
+plot(x=longley$Employed, y=longley$Armed.Forces)
+plot(x=longley$Employed, y=longley$Population)
+plot(x=longley$Employed, y=longley$Year)
+
+cor(longley$Employed, longley$GNP)
+cor(longley$Employed, longley$GNP.deflator)
+cor(longley$Employed, longley$Unemployed)
+cor(longley$Employed, longley$Armed.Forces)
+cor(longley$Employed, longley$Population)
+cor(longley$Employed, longley$Year)
+
+# 3 most correlated based on the graph/cor are
+# GNP.deflator, GNP, Year
+
+# Do linear Regression on first Variable
+x <- longley$Employed
+y <- longley$GNP.deflator
+
+mod1 <- lm(y ~ x, data=longley)
+summary(mod1)
+
+#Do linear Regression on second variable
+x <- longley$Employed
+y <- longley$GNP
+
+mod2 <- lm(y ~ x, data=longley)
+summary(mod2)
+## coeficients are Intercept=-1430.482 , x = 27.836
+## y = -1430.482 + 27.836*x
+
+
+#Do linear Regression on third variable
+x <- longley$Employed
+y <- longley$Year
+
+mod3 <- lm(y ~ x, data=longley)
+summary(mod3)
+
+
+# The Best Model is Employed vs GNP (i.e. mod2) based on the result of the regression model - best R^2 value
+# Create Model Matrix
+
+summary(longley$GNP)
+summary(mod2$fitted.values)
+
+# see both actual and fitted/predicted on one graph
+plot(x = longley$Employed, y = longley$GNP, col='blue')
+points(x = longley$Employed, y = mod2$fitted.values, col='red')
+
+# See residuals are randomly scattered
+plot(x=mod2$residuals)
+abline(h=0, lty=3)
+
+# 4 Create model Matrices
+
+fit.stats <- as.data.frame(cbind(longley$GNP, mod2$fitted.values)) %>%
+  rename(Actuals = V1, Predicted.Values = V2) %>%
+  mutate(error = Actuals - Predicted.Values, squared.error = error^2)
+
+SSE <- sum(fit.stats$squared.error)
+
+RMSE <- sqrt(mean(fit.stats$squared.error))
+RMSE
+
+longleyshort <- longley %>%
+  select(Employed, Year)
+
+cov.longleyshort <- cov(longleyshort) 
+
+# Employed = 12.33
+# Year = 22.67
+
+eigen.longleyshort <- eigen(cov.longleyshort)
